@@ -1,0 +1,39 @@
+/* src/index.css */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Define the keyframes for the continuous color change animation */
+@keyframes magicBorderColor {
+    0%   { border-color: #EF4444; } /* Red */
+    16%  { border-color: #3B82F6; } /* Blue */
+    33%  { border-color: #10B981; } /* Green */
+    50%  { border-color: #F59E0B; } /* Amber */
+    66%  { border-color: #6366F1; } /* Indigo */
+    83%  { border-color: #EC4899; } /* Pink */
+    100% { border-color: #EF4444; } /* Back to Red to complete the loop */
+}
+
+/* Apply the animation to a custom class */
+.animated-magic-border {
+    /* Apply the animation: name, duration, timing function, iteration count */
+    animation: magicBorderColor 15s ease-in-out infinite; /* 15s for a slow, smooth cycle */
+    /* Ensure the border is visible */
+    border-width: 2px;
+    border-style: solid;
+}
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+        "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
+        "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+        monospace;
+}
