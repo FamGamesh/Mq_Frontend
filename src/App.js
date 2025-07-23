@@ -311,13 +311,13 @@ function App() {
                     {/* Header */}
                     <div className="text-center mb-8">
                         <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                            {examType}-Focused Testbook MCQ Extractor
+                            {examType}-Focused MCQ Extractor
                         </h1>
                         <p className="text-gray-600 mb-2">
                             Extract {examType}-relevant MCQs with Smart Topic Filtering
                         </p>
                         <p className="text-sm text-blue-600 font-medium">
-                            Enhanced with Smart Connection Management & High-Quality Screenshots!
+                            Enhanced with High-Quality Screenshots!
                         </p>
                     </div>
 
@@ -360,7 +360,7 @@ function App() {
                                 <form onSubmit={handleSubmit} className="space-y-4">
                                     <div>
                                         <label htmlFor="topic" className="block text-sm font-medium text-gray-700 mb-2">
-                                            Enter Topic (e.g., "Heart", "Physics", "Mathematics")
+                                            Enter Topic (e.g., "Heart", "President", "Bharatanatyam")
                                         </label>
                                         <input
                                             type="text"
