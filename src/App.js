@@ -581,7 +581,7 @@ function App() {
                         {adIntegration.isAndroidWebView && (
                             <div className="mt-2 inline-flex items-center px-3 py-1 rounded-full text-xs bg-green-100 text-green-800">
                                 <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                                Android WebView Mode - Ads Integration Active
+                                Premium - Active
                             </div>
                         )}
                     </div>
