@@ -574,7 +574,7 @@ function App() {
                             Extract {examType}-relevant MCQs with Smart Topic Filtering
                         </p>
                         <p className="text-sm text-blue-600 font-medium">
-                            Enhanced with High-Quality Screenshots & Ads Integration!
+                            Enhanced with High-Quality Screenshots!
                         </p>
                         
                         {/* ENHANCED Ads Integration Status */}
