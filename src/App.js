@@ -826,16 +826,21 @@ function App() {
             </div>
 
             {/* Footer */}
-<div className="container mx-auto px-4 pb-8 mt-6">
-    <div className="max-w-2xl mx-auto">
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center shadow-md">
-            <h3 className="text-2xl font-bold text-blue-800 mb-2">🧠 Study Smarter, not Harder</h3>
-            <div className="inline-block px-4 py-2 rounded-lg shadow-sm bg-white bg-opacity-90 animated-magic-border">
-                <p className="text-base font-semibold text-gray-700 select-none">
-                    Made By HEMANT SINGH
-                </p>
+            <div className="container mx-auto px-4 pb-8 mt-6">
+                <div className="max-w-2xl mx-auto">
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center shadow-md">
+                        <h3 className="text-2xl font-bold text-blue-800 mb-2">🧠 Study Smarter, not Harder</h3>
+                        <div className="inline-block px-4 py-2 rounded-lg shadow-sm bg-white bg-opacity-90 animated-magic-border">
+                            <p className="text-base font-semibold text-gray-700 select-none">
+                                Made By HEMANT SINGH
+                            </p>
+                        </div>
+                        
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</div>
+    );
+}
 
+export default App;
