@@ -1,4 +1,4 @@
-// Enhanced App.js with Smart Connection Management and Exponential Backoff
+// ENHANCED App.js with ANDROID ADS INTEGRATION
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import './App.css'; // Your existing custom styles
@@ -25,26 +25,26 @@ class SmartConnectionManager {
                 return result;
             } catch (error) {
                 this.retryAttempts = attempt + 1;
-                
+
                 console.warn(`[Connection Manager] Attempt ${attempt + 1} failed for ${context}:`, error.message);
-                
+
                 // Don't retry on certain errors
                 if (error.response?.status === 404) {
                     throw error;
                 }
-                
+
                 // If we've exhausted retries, throw the error
                 if (attempt === this.maxRetries) {
                     console.error(`[Connection Manager] All ${this.maxRetries + 1} attempts failed for ${context}`);
                     throw error;
                 }
-                
+
                 // Calculate delay with exponential backoff and jitter
                 const delay = Math.min(
                     this.baseDelay * Math.pow(2, attempt) + Math.random() * 1000,
                     this.maxDelay
                 );
-                
+
                 console.log(`[Connection Manager] Retrying ${context} in ${delay}ms (attempt ${attempt + 2}/${this.maxRetries + 1})`);
                 await new Promise(resolve => setTimeout(resolve, delay));
             }
@@ -53,17 +53,17 @@ class SmartConnectionManager {
 
     async checkBrowserStatus() {
         const now = Date.now();
-        
+
         // Use cached status if it's recent
         if (this.browserStatusCache && (now - this.lastBrowserCheck) < this.browserCheckInterval) {
             return this.browserStatusCache;
         }
-        
+
         try {
             const response = await axios.get(`${BACKEND_URL}/api/browser-status`, {
                 timeout: 5000
             });
-            
+
             this.browserStatusCache = response.data;
             this.lastBrowserCheck = now;
             return response.data;
@@ -82,6 +82,173 @@ class SmartConnectionManager {
     }
 }
 
+// ENHANCED ADS INTEGRATION CLASS
+class AndroidAdsIntegration {
+    constructor() {
+        this.isAndroidWebView = typeof window.AndroidBridge !== 'undefined';
+        this.screenshotFeatureUnlocked = false;
+        
+        // Set up Android callback handlers
+        if (this.isAndroidWebView) {
+            this.setupAndroidCallbacks();
+        }
+        
+        console.log('🎯 AndroidAdsIntegration initialized:', this.isAndroidWebView ? 'WebView Mode' : 'Browser Mode');
+    }
+
+    setupAndroidCallbacks() {
+        // Called when screenshot feature is unlocked after watching rewarded ad
+        window.onScreenshotFeatureUnlocked = () => {
+            console.log('✅ Screenshot feature unlocked by Android');
+            this.screenshotFeatureUnlocked = true;
+            this.showNotification('Screenshot feature unlocked! You can now generate high-quality image PDFs.', 'success');
+        };
+
+        // Called when screenshot feature is used and unlock is consumed
+        window.onScreenshotFeatureUsed = () => {
+            console.log('📸 Screenshot feature used - unlock consumed');
+            this.screenshotFeatureUnlocked = false;
+            this.showNotification('Screenshot feature used. Watch another ad to use it again.', 'info');
+        };
+
+        // Called when download ad is watched and download should be allowed
+        window.onDownloadAdWatched = (downloadUrl, filename) => {
+            console.log('✅ Download ad watched - allowing download:', filename);
+            this.showNotification('Ad watched! Your download is ready.', 'success');
+            // The download will proceed automatically through the WebView
+        };
+
+        // Called when an ad error occurs
+        window.onAdError = (errorMessage) => {
+            console.log('❌ Ad error from Android:', errorMessage);
+            this.showNotification(`Ad not available: ${errorMessage}`, 'warning');
+        };
+    }
+
+    // Request screenshot feature with rewarded ad
+    requestScreenshotFeature() {
+        if (this.isAndroidWebView) {
+            try {
+                console.log('🎁 Requesting screenshot feature from Android');
+                window.AndroidBridge.requestScreenshotFeature();
+                return true;
+            } catch (error) {
+                console.error('Error requesting screenshot feature:', error);
+                this.showNotification('Unable to show ad. Feature available anyway.', 'warning');
+                return true; // Allow anyway
+            }
+        } else {
+            // Browser fallback - allow feature
+            console.log('🌐 Browser mode - screenshot feature available');
+            return true;
+        }
+    }
+
+    // Check if screenshot feature is unlocked
+    checkScreenshotFeatureUnlocked() {
+        if (this.isAndroidWebView) {
+            try {
+                const isUnlocked = window.AndroidBridge.checkScreenshotFeatureUnlocked();
+                console.log('🔍 Screenshot feature status:', isUnlocked);
+                return isUnlocked;
+            } catch (error) {
+                console.error('Error checking screenshot feature:', error);
+                return true; // Allow in case of error
+            }
+        } else {
+            // Browser fallback - always allow
+            return true;
+        }
+    }
+
+    // Use screenshot feature (consumes unlock)
+    useScreenshotFeature() {
+        if (this.isAndroidWebView) {
+            try {
+                window.AndroidBridge.useScreenshotFeature();
+                console.log('📸 Screenshot feature used - unlock consumed');
+            } catch (error) {
+                console.error('Error using screenshot feature:', error);
+            }
+        }
+    }
+
+    // Request PDF download with interstitial ad
+    requestPDFDownload(downloadUrl, filename) {
+        if (this.isAndroidWebView) {
+            try {
+                console.log('📥 Requesting PDF download with ad:', filename);
+                window.AndroidBridge.requestPDFDownload(downloadUrl, filename);
+                return true; // Ad will handle the download
+            } catch (error) {
+                console.error('Error requesting PDF download:', error);
+                this.showNotification('Unable to show ad. Starting download anyway.', 'warning');
+                // Fallback to direct download
+                window.open(downloadUrl, '_blank');
+                return false;
+            }
+        } else {
+            // Browser fallback - direct download
+            console.log('🌐 Browser mode - direct download');
+            window.open(downloadUrl, '_blank');
+            return false;
+        }
+    }
+
+    // Get ad system status
+    getAdStatus() {
+        if (this.isAndroidWebView) {
+            try {
+                const statusJson = window.AndroidBridge.getAdStatus();
+                return JSON.parse(statusJson);
+            } catch (error) {
+                console.error('Error getting ad status:', error);
+                return { adSystemReady: false, error: error.message };
+            }
+        } else {
+            return { adSystemReady: false, browserMode: true };
+        }
+    }
+
+    // Show notification to user
+    showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm transform transition-all duration-300 translate-x-full`;
+        
+        const bgColor = {
+            success: 'bg-green-500',
+            error: 'bg-red-500',
+            warning: 'bg-yellow-500',
+            info: 'bg-blue-500'
+        }[type] || 'bg-blue-500';
+        
+        notification.className += ` ${bgColor} text-white`;
+        notification.innerHTML = `
+            <div class="flex items-center">
+                <span class="mr-2">${type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'}</span>
+                <span class="text-sm">${message}</span>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Animate in
+        setTimeout(() => {
+            notification.classList.remove('translate-x-full');
+        }, 100);
+        
+        // Remove after 5 seconds
+        setTimeout(() => {
+            notification.classList.add('translate-x-full');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 5000);
+    }
+}
+
 function App() {
     // Main app state
     const [topic, setTopic] = useState('');
@@ -91,15 +258,51 @@ function App() {
     const [jobId, setJobId] = useState(null);
     const [jobStatus, setJobStatus] = useState(null);
     const [error, setError] = useState('');
-    
+
     // Smart connection management state
     const [connectionHealth, setConnectionHealth] = useState('stable');
     const [browserStatus, setBrowserStatus] = useState(null);
     const [retryInfo, setRetryInfo] = useState(null);
-    
+
+    // ENHANCED ADS INTEGRATION STATE
+    const [adIntegration] = useState(() => new AndroidAdsIntegration());
+    const [adStatus, setAdStatus] = useState({});
+    const [screenshotAdRequired, setScreenshotAdRequired] = useState(false);
+
     const connectionManager = useRef(new SmartConnectionManager());
     const pollIntervalRef = useRef(null);
     const browserCheckIntervalRef = useRef(null);
+
+    // ENHANCED Check ad status on component mount
+    useEffect(() => {
+        const checkAdStatus = () => {
+            const status = adIntegration.getAdStatus();
+            setAdStatus(status);
+            console.log('🎯 Current ad status:', status);
+        };
+
+        checkAdStatus();
+        
+        // Check ad status periodically
+        const adStatusInterval = setInterval(checkAdStatus, 10000);
+        
+        return () => clearInterval(adStatusInterval);
+    }, [adIntegration]);
+
+    // ENHANCED Handle screenshot PDF format selection
+    useEffect(() => {
+        if (pdfFormat === 'image') {
+            // Check if screenshot feature is available
+            const isUnlocked = adIntegration.checkScreenshotFeatureUnlocked();
+            setScreenshotAdRequired(!isUnlocked);
+            
+            if (!isUnlocked && adIntegration.isAndroidWebView) {
+                console.log('🔒 Screenshot feature locked - ad required');
+            }
+        } else {
+            setScreenshotAdRequired(false);
+        }
+    }, [pdfFormat, adIntegration]);
 
     // Enhanced job status polling with smart retry logic
     const pollJobStatus = async (jobId) => {
@@ -110,18 +313,18 @@ function App() {
                 }),
                 `job status for ${jobId}`
             );
-            
+
             const jobData = response.data;
-            
+
             setJobStatus(jobData);
             setConnectionHealth(jobData.connection_health || 'stable');
             setRetryInfo(null); // Clear retry info on success
-            
+
             // Update browser status if provided
             if (jobData.browser_monitoring) {
                 setBrowserStatus(jobData.browser_monitoring);
             }
-            
+
             // Stop polling if job is complete or failed
             if (jobData.status === 'completed' || jobData.status === 'error') {
                 setIsGenerating(false);
@@ -130,15 +333,15 @@ function App() {
                     pollIntervalRef.current = null;
                 }
             }
-            
+
             return jobData;
-            
+
         } catch (error) {
             console.error('[Job Status] Polling failed:', error);
-            
+
             const connectionStatus = connectionManager.current.getConnectionStatus();
             setRetryInfo(connectionStatus);
-            
+
             // If we can't get job status, try to check browser status
             const browserStatus = await connectionManager.current.checkBrowserStatus();
             if (browserStatus) {
@@ -147,13 +350,13 @@ function App() {
             } else {
                 setConnectionHealth('error');
             }
-            
+
             // Don't show error immediately, let retry mechanism handle it
             if (connectionStatus.retryAttempts >= connectionStatus.maxRetries) {
                 setError(`Failed to fetch job status after ${connectionStatus.maxRetries + 1} attempts. Browser may be restarting.`);
                 setIsGenerating(false);
             }
-            
+
             throw error;
         }
     };
@@ -213,12 +416,26 @@ function App() {
         };
     }, [jobId, isGenerating]);
 
+    // ENHANCED Handle form submission with ads integration
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!topic.trim()) {
             setError('Please enter a topic name');
             return;
+        }
+
+        // ENHANCED Check if screenshot feature is selected and requires ad
+        if (pdfFormat === 'image' && adIntegration.isAndroidWebView) {
+            const isUnlocked = adIntegration.checkScreenshotFeatureUnlocked();
+            if (!isUnlocked) {
+                console.log('🎁 Screenshot feature requires rewarded ad');
+                const adRequested = adIntegration.requestScreenshotFeature();
+                if (adRequested) {
+                    setError('Please watch the ad to unlock high-quality screenshot feature');
+                    return;
+                }
+            }
         }
 
         setError('');
@@ -229,6 +446,11 @@ function App() {
         setConnectionHealth('stable');
 
         try {
+            // ENHANCED Consume screenshot unlock if using image format
+            if (pdfFormat === 'image' && adIntegration.isAndroidWebView) {
+                adIntegration.useScreenshotFeature();
+            }
+
             const response = await connectionManager.current.makeRequest(
                 () => axios.post(`${BACKEND_URL}/api/generate-mcq-pdf`, {
                     topic: topic.trim(),
@@ -242,7 +464,7 @@ function App() {
 
             setJobId(response.data.job_id);
             setJobStatus(response.data);
-            
+
         } catch (err) {
             console.error('Error starting MCQ generation:', err);
             const errorMessage = err.response?.data?.detail || err.message || 'Failed to start MCQ generation';
@@ -251,9 +473,31 @@ function App() {
         }
     };
 
+    // ENHANCED Handle download with ads integration
     const handleDownload = () => {
         if (jobStatus?.pdf_url) {
-            window.open(`${BACKEND_URL}${jobStatus.pdf_url}`, '_blank');
+            const downloadUrl = `${BACKEND_URL}${jobStatus.pdf_url}`;
+            const filename = `${examType}_${topic.replace(/\s+/g, '_')}_MCQs.pdf`;
+            
+            console.log('📥 Download requested:', filename);
+            
+            // ENHANCED Use Android ads integration for download
+            const adHandled = adIntegration.requestPDFDownload(downloadUrl, filename);
+            
+            if (!adHandled) {
+                // Fallback already handled in requestPDFDownload
+                console.log('🔄 Download fallback completed');
+            }
+        }
+    };
+
+    // ENHANCED Handle screenshot format selection
+    const handleFormatChange = (e) => {
+        const newFormat = e.target.value;
+        setPdfFormat(newFormat);
+        
+        if (newFormat === 'image') {
+            console.log('📸 Image format selected - checking screenshot feature availability');
         }
     };
 
@@ -268,7 +512,8 @@ function App() {
         setConnectionHealth('stable');
         setBrowserStatus(null);
         setRetryInfo(null);
-        
+        setScreenshotAdRequired(false);
+
         // Clear intervals
         if (pollIntervalRef.current) {
             clearInterval(pollIntervalRef.current);
@@ -278,7 +523,7 @@ function App() {
             clearInterval(browserCheckIntervalRef.current);
             browserCheckIntervalRef.current = null;
         }
-        
+
         // Reset connection manager
         connectionManager.current = new SmartConnectionManager();
     };
@@ -304,6 +549,18 @@ function App() {
         }
     };
 
+    // ENHANCED Get format description with ads info
+    const getFormatDescription = (format) => {
+        if (format === 'text') {
+            return 'Text-based PDF with clean formatting';
+        } else {
+            const adInfo = adIntegration.isAndroidWebView ? 
+                (screenshotAdRequired ? ' (🎁 Watch ad to unlock)' : ' (✅ Unlocked)') : 
+                ' (Available in browser)';
+            return `High-Quality Screenshots of MCQs${adInfo}`;
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
             <div className="container mx-auto px-4 py-8">
@@ -317,8 +574,16 @@ function App() {
                             Extract {examType}-relevant MCQs with Smart Topic Filtering
                         </p>
                         <p className="text-sm text-blue-600 font-medium">
-                            Enhanced with High-Quality Screenshots!
+                            Enhanced with High-Quality Screenshots & Ads Integration!
                         </p>
+                        
+                        {/* ENHANCED Ads Integration Status */}
+                        {adIntegration.isAndroidWebView && (
+                            <div className="mt-2 inline-flex items-center px-3 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                                <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                                Android WebView Mode - Ads Integration Active
+                            </div>
+                        )}
                     </div>
 
                     {/* Connection Status Indicator */}
@@ -334,13 +599,13 @@ function App() {
                                     {getConnectionStatusText()}
                                 </span>
                             </div>
-                            
+
                             {retryInfo && retryInfo.isRetrying && (
                                 <span className="text-sm text-yellow-600">
                                     Retrying... ({retryInfo.retryAttempts}/{retryInfo.maxRetries + 1})
                                 </span>
                             )}
-                            
+
                             {browserStatus && (
                                 <span className="text-xs text-gray-500">
                                     Browser restarts: {browserStatus.browser_restart_count || 0}
@@ -354,7 +619,7 @@ function App() {
                         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
                             <h2 className="text-xl font-semibold text-white">Extract MCQs by Topic</h2>
                         </div>
-                        
+
                         <div className="p-6">
                             {!isGenerating ? (
                                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -389,7 +654,7 @@ function App() {
                                         </select>
                                     </div>
 
-                                    {/* PDF Format Selection */}
+                                    {/* ENHANCED PDF Format Selection with Ads Integration */}
                                     <div>
                                         <label htmlFor="pdfFormat" className="block text-sm font-medium text-gray-700 mb-2">
                                             Select PDF Format
@@ -397,12 +662,19 @@ function App() {
                                         <select
                                             id="pdfFormat"
                                             value={pdfFormat}
-                                            onChange={(e) => setPdfFormat(e.target.value)}
+                                            onChange={handleFormatChange}
                                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors"
                                         >
-                                            <option value="text">Text Form (PDF with text)</option>
-                                            <option value="image">Image Form (High-Quality Screenshots of MCQs)</option>
+                                            <option value="text">📝 Text Form (PDF with text)</option>
+                                            <option value="image">
+                                                📸 Image Form ({adIntegration.isAndroidWebView ? 
+                                                    (screenshotAdRequired ? '🔒 Watch Ad' : '✅ Unlocked') : 
+                                                    'Available'})
+                                            </option>
                                         </select>
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            {getFormatDescription(pdfFormat)}
+                                        </p>
                                     </div>
 
                                     {error && (
@@ -411,16 +683,30 @@ function App() {
                                         </div>
                                     )}
 
+                                    {/* ENHANCED Screenshot Ad Warning */}
+                                    {pdfFormat === 'image' && screenshotAdRequired && adIntegration.isAndroidWebView && (
+                                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                                            <div className="flex items-center">
+                                                <span className="text-yellow-600 mr-2">🎁</span>
+                                                <p className="text-yellow-800 text-sm">
+                                                    High-quality screenshot feature requires watching a short ad. 
+                                                    Click "Generate" to watch the ad and unlock this feature.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+
                                     <button
                                         type="submit"
                                         disabled={connectionHealth === 'error'}
                                         className={`w-full font-medium py-3 px-4 rounded-lg transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                                            connectionHealth === 'error' 
+                                            connectionHealth === 'error'
                                                 ? 'bg-gray-400 cursor-not-allowed text-white'
                                                 : 'bg-blue-600 hover:bg-blue-700 text-white'
                                         }`}
                                     >
                                         🚀 Generate {examType} MCQ PDF ({pdfFormat === 'text' ? 'Text' : 'High-Quality Image'} Format)
+                                        {pdfFormat === 'image' && screenshotAdRequired && adIntegration.isAndroidWebView && ' - Watch Ad'}
                                     </button>
                                 </form>
                             ) : (
@@ -447,7 +733,7 @@ function App() {
                                                         {jobStatus.status}
                                                     </span>
                                                 </div>
-                                                
+
                                                 <div className="text-sm text-gray-700">
                                                     <strong>Progress:</strong> {jobStatus.progress}
                                                 </div>
@@ -472,8 +758,8 @@ function App() {
                                                     <div className="mt-3 p-2 bg-yellow-50 rounded border border-yellow-200">
                                                         <div className="text-xs text-yellow-800">
                                                             <strong>Smart Connection:</strong> {
-                                                                connectionHealth === 'browser_restarting' 
-                                                                    ? 'Browser is restarting, processing will continue automatically...' 
+                                                                connectionHealth === 'browser_restarting'
+                                                                    ? 'Browser is restarting, processing will continue automatically...'
                                                                     : 'Monitoring connection health...'
                                                             }
                                                         </div>
@@ -487,7 +773,7 @@ function App() {
                         </div>
                     </div>
 
-                    {/* Results */}
+                    {/* ENHANCED Results with Ads Integration */}
                     {jobStatus && jobStatus.status === 'completed' && (
                         <div className="mt-6 bg-green-50 border border-green-200 rounded-lg p-4">
                             <h3 className="text-lg font-semibold text-green-800 mb-2">✅ PDF Generated Successfully!</h3>
@@ -500,9 +786,10 @@ function App() {
                             <div className="flex space-x-3">
                                 <button
                                     onClick={handleDownload}
-                                    className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+                                    className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center"
                                 >
                                     📄 Download PDF
+                                    {adIntegration.isAndroidWebView && <span className="ml-1 text-xs">(🎬 Ad)</span>}
                                 </button>
                                 <button
                                     onClick={resetForm}
@@ -511,6 +798,15 @@ function App() {
                                     🔄 Extract Another Topic
                                 </button>
                             </div>
+                            
+                            {/* ENHANCED Download Instructions for Android */}
+                            {adIntegration.isAndroidWebView && (
+                                <div className="mt-3 p-2 bg-blue-50 rounded border border-blue-200">
+                                    <p className="text-xs text-blue-800">
+                                        📱 <strong>Android App:</strong> Watch a short ad, then your PDF will be ready in the Downloads section!
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -539,6 +835,13 @@ function App() {
                                 Made By HEMANT SINGH
                             </p>
                         </div>
+                        
+                        {/* ENHANCED Ads Integration Footer */}
+                        {adIntegration.isAndroidWebView && (
+                            <div className="mt-2 text-xs text-blue-600">
+                                🎯 Enhanced with Smart Ads Integration
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

@@ -4,7 +4,7 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#000000" />
-        <meta name="description" content="MCQ Scraper Application" />
+        <meta name="description" content="MCQ Scraper Application with Android Ads Integration" />
         <!--
         manifest.json provides metadata used when your web app is installed on a
         user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
@@ -18,7 +18,7 @@
         work correctly both with client-side routing and a non-root public URL.
         Learn how to configure a non-root public URL by running `npm run build`.
         -->
-        <title>MCQ Scraper Application</title>
+        <title>MCQ Extractor - Enhanced with Ads</title>
         <!-- Tailwind CSS CDN for easy styling -->
         <script src="https://cdn.tailwindcss.com"></script>
         <!-- Link to Google Fonts for Inter -->
@@ -29,6 +29,23 @@
                 font-family: 'Inter', sans-serif;
             }
         </style>
+        
+        <!-- ENHANCED Android WebView Detection Script -->
+        <script>
+            // Early detection of Android WebView environment
+            window.isAndroidWebView = function() {
+                return typeof AndroidBridge !== 'undefined';
+            };
+            
+            // Set up early Android bridge detection
+            if (typeof AndroidBridge !== 'undefined') {
+                console.log('🎯 Android WebView detected - Ads integration will be active');
+                document.documentElement.classList.add('android-webview');
+            } else {
+                console.log('🌐 Browser mode detected - Standard web functionality');
+                document.documentElement.classList.add('browser-mode');
+            }
+        </script>
     </head>
     <body>
         <noscript>You need to enable JavaScript to run this app.</noscript>
@@ -43,5 +60,64 @@
         To begin the development, run `npm start` or `yarn start`.
         To create a production bundle, use `npm run build` or `yarn build`.
         -->
+        
+        <!-- ENHANCED Android Bridge Helper Scripts -->
+        <script>
+            // Enhanced Android Bridge helper functions
+            window.AndroidBridgeHelper = {
+                // Safe method to call Android functions
+                safeCall: function(methodName, ...args) {
+                    try {
+                        if (typeof AndroidBridge !== 'undefined' && typeof AndroidBridge[methodName] === 'function') {
+                            return AndroidBridge[methodName](...args);
+                        } else {
+                            console.log(`AndroidBridge.${methodName} not available - running in browser mode`);
+                            return null;
+                        }
+                    } catch (error) {
+                        console.error(`Error calling AndroidBridge.${methodName}:`, error);
+                        return null;
+                    }
+                },
+                
+                // Check if running in Android WebView
+                isWebView: function() {
+                    return typeof AndroidBridge !== 'undefined';
+                },
+                
+                // Get environment info
+                getEnvironment: function() {
+                    return this.isWebView() ? 'android-webview' : 'browser';
+                }
+            };
+
+            // Global Android callback functions setup
+            window.setupAndroidCallbacks = function() {
+                // These functions will be called by Android
+                window.onScreenshotFeatureUnlocked = window.onScreenshotFeatureUnlocked || function() {
+                    console.log('🎁 Screenshot feature unlocked callback received');
+                };
+                
+                window.onScreenshotFeatureUsed = window.onScreenshotFeatureUsed || function() {
+                    console.log('📸 Screenshot feature used callback received');
+                };
+                
+                window.onDownloadAdWatched = window.onDownloadAdWatched || function(downloadUrl, filename) {
+                    console.log('✅ Download ad watched callback received:', filename);
+                };
+                
+                window.onAdError = window.onAdError || function(errorMessage) {
+                    console.log('❌ Ad error callback received:', errorMessage);
+                };
+                
+                console.log('🔗 Android callbacks initialized');
+            };
+
+            // Initialize callbacks immediately
+            window.setupAndroidCallbacks();
+            
+            // Log environment information
+            console.log('🎯 MCQ Extractor Environment:', window.AndroidBridgeHelper.getEnvironment());
+        </script>
     </body>
 </html>

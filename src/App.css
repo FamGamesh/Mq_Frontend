@@ -1,4 +1,4 @@
-/* src/App.css */
+/* ENHANCED src/App.css with Ads Integration Styles */
 
 /* Custom styles for smooth animations */
 .fade-in {
@@ -92,18 +92,100 @@
   @apply bg-green-50 border border-green-200 text-green-700 p-4 rounded-lg mb-4;
 }
 
+/* ENHANCED Ads integration styles */
+.ad-status-indicator {
+  @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-medium;
+}
+
+.ad-status-active {
+  @apply bg-green-100 text-green-800;
+}
+
+.ad-status-inactive {
+  @apply bg-gray-100 text-gray-600;
+}
+
+.ad-status-loading {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+/* Screenshot feature locked indicator */
+.screenshot-locked {
+  @apply relative;
+}
+
+.screenshot-locked::after {
+  content: '🔒';
+  @apply absolute -top-1 -right-1 text-xs;
+}
+
+/* Ad notification styles */
+.ad-notification {
+  @apply fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg max-w-sm transform transition-all duration-300;
+}
+
+.ad-notification-enter {
+  @apply translate-x-full;
+}
+
+.ad-notification-enter-active {
+  @apply translate-x-0;
+}
+
+.ad-notification-exit {
+  @apply translate-x-0;
+}
+
+.ad-notification-exit-active {
+  @apply translate-x-full;
+}
+
+/* Enhanced reward indicator */
+.reward-indicator {
+  @apply inline-flex items-center px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-800 font-medium;
+}
+
+.reward-indicator::before {
+  content: '🎁';
+  @apply mr-1;
+}
+
+/* Ad-enabled feature styling */
+.feature-ad-enabled {
+  @apply relative border-2 border-dashed border-yellow-300 bg-yellow-50;
+}
+
+.feature-ad-enabled::before {
+  content: 'Ad Required';
+  @apply absolute top-0 right-0 bg-yellow-500 text-white text-xs px-2 py-1 rounded-bl-lg font-medium;
+}
+
+.feature-ad-unlocked {
+  @apply relative border-2 border-solid border-green-300 bg-green-50;
+}
+
+.feature-ad-unlocked::before {
+  content: 'Unlocked';
+  @apply absolute top-0 right-0 bg-green-500 text-white text-xs px-2 py-1 rounded-bl-lg font-medium;
+}
+
 /* Enhanced responsive design */
 @media (max-width: 640px) {
   .container {
     @apply px-2;
   }
-  
+
   .card {
     @apply p-4;
   }
-  
+
   h1 {
     @apply text-3xl;
+  }
+
+  /* Mobile ad notification */
+  .ad-notification {
+    @apply left-4 right-4 top-4 max-w-none;
   }
 }
 
@@ -122,4 +204,72 @@
 .border-gradient {
   border: 2px solid;
   border-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%) 1;
+}
+
+/* Animated border for "Made By" section */
+.animated-magic-border {
+  position: relative;
+  background: linear-gradient(45deg, #fff, #f8f9fa);
+}
+
+.animated-magic-border::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #667eea, #764ba2, #667eea);
+  border-radius: inherit;
+  z-index: -1;
+  animation: borderGlow 3s ease-in-out infinite;
+}
+
+@keyframes borderGlow {
+  0%, 100% {
+    background: linear-gradient(45deg, #667eea, #764ba2, #667eea);
+  }
+  50% {
+    background: linear-gradient(45deg, #764ba2, #667eea, #764ba2);
+  }
+}
+
+/* ENHANCED Connection status with ads integration */
+.connection-status-ads {
+  @apply flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border-l-4;
+}
+
+.connection-status-ads.stable {
+  @apply border-green-500;
+}
+
+.connection-status-ads.warning {
+  @apply border-yellow-500;
+}
+
+.connection-status-ads.error {
+  @apply border-red-500;
+}
+
+/* Format selection with ads indicator */
+.format-option-ad {
+  @apply relative;
+}
+
+.format-option-ad[data-ad-required="true"] {
+  @apply bg-yellow-50 border-yellow-200;
+}
+
+.format-option-ad[data-ad-required="true"]::after {
+  content: '🎁 Ad Required';
+  @apply absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-yellow-700 bg-yellow-200 px-2 py-1 rounded;
+}
+
+.format-option-ad[data-ad-unlocked="true"] {
+  @apply bg-green-50 border-green-200;
+}
+
+.format-option-ad[data-ad-unlocked="true"]::after {
+  content: '✅ Unlocked';
+  @apply absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-green-700 bg-green-200 px-2 py-1 rounded;
 }
